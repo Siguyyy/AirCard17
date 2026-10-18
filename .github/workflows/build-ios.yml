@@ -1,0 +1,155 @@
+name: Build iOS Packages
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "AirCard17/**"
+      - "AirCard17.xcodeproj/**"
+      - "AirCard17TrollStore.entitlements"
+      - ".github/workflows/build-ios.yml"
+      - "AirCard17/nfcd_a3/**"
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project AirCard17.xcodeproj \
+            -scheme AirCard17
+
+      - name: Install ldid
+        run: brew install ldid
+
+      - name: Build app (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project AirCard17.xcodeproj \
+            -scheme AirCard17 \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build 2>&1 | tee xcodebuild.log
+
+      - name: Surface xcodebuild errors
+        if: failure()
+        run: |
+          echo "Collecting xcodebuild error lines..."
+          ERR_LINES="$(grep -E "error:|fatal error:" xcodebuild.log | tail -n 40 || true)"
+          if [ -z "$ERR_LINES" ]; then
+            echo "::error::Build failed with exit code 65, but no explicit 'error:' line was found in xcodebuild.log"
+            tail -n 120 xcodebuild.log || true
+            exit 1
+          fi
+
+          echo "$ERR_LINES"
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            echo "::error::$line"
+          done <<< "$ERR_LINES"
+
+          exit 1
+
+      - name: Package IPA
+        run: |
+          APP_PATH="build/Build/Products/Release-iphoneos/AirCard17.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "App not found at $APP_PATH"
+            find build -maxdepth 5 -type d -name "*.app" || true
+            exit 1
+          fi
+
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -qry aircard17-unsigned.ipa Payload
+
+      - name: Package TrollStore TIPA
+        run: |
+          set -euo pipefail
+
+          APP_PATH="build/Build/Products/Release-iphoneos/AirCard17.app"
+          ENTITLEMENTS_PATH="AirCard17TrollStore.entitlements"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "App not found at $APP_PATH"
+            find build -maxdepth 5 -type d -name "*.app" || true
+            exit 1
+          fi
+
+          if [ ! -f "$ENTITLEMENTS_PATH" ]; then
+            echo "Entitlements file not found at $ENTITLEMENTS_PATH"
+            exit 1
+          fi
+
+          APP_BUNDLE_NAME="$(basename "$APP_PATH")"
+
+          rm -rf Payload-trollstore
+          mkdir -p Payload-trollstore/Payload
+          cp -R "$APP_PATH" Payload-trollstore/Payload/
+
+          STAGED_APP_PATH="Payload-trollstore/Payload/$APP_BUNDLE_NAME"
+          APP_EXECUTABLE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$STAGED_APP_PATH/Info.plist")"
+          APP_EXECUTABLE_PATH="$STAGED_APP_PATH/$APP_EXECUTABLE_NAME"
+
+          NFCD_A3_ENTITLEMENTS="AirCard17/nfcd_a3/nfcd_a3.entitlements"
+
+          find "$STAGED_APP_PATH" -type f -print0 | while IFS= read -r -d '' candidate; do
+            if ! file -b "$candidate" | grep -q '^Mach-O'; then
+              continue
+            fi
+
+            if [ "$candidate" = "$APP_EXECUTABLE_PATH" ]; then
+              continue
+            fi
+
+            # Sign helper binaries with their specific entitlements if available
+            filename="$(basename "$candidate")"
+            if [ "$filename" = "nfcd_a3" ] && [ -f "$NFCD_A3_ENTITLEMENTS" ]; then
+              ldid -S"$NFCD_A3_ENTITLEMENTS" "$candidate"
+            else
+              ldid -S "$candidate"
+            fi
+          done
+
+          ldid -S"$ENTITLEMENTS_PATH" "$APP_EXECUTABLE_PATH"
+          ldid -e "$APP_EXECUTABLE_PATH" > aircard17-trollstore-entitlements.plist
+
+          (
+            cd Payload-trollstore
+            zip -qry ../aircard17-trollstore.tipa Payload
+          )
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aircard17-unsigned.ipa
+          path: aircard17-unsigned.ipa
+
+      - name: Upload TrollStore artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aircard17-trollstore.tipa
+          path: |
+            aircard17-trollstore.tipa
+            aircard17-trollstore-entitlements.plist
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aircard17-build-logs
+          path: xcodebuild.log

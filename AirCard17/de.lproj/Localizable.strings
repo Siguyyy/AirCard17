@@ -1,0 +1,132 @@
+/* CardioDS — Deutsch */
+
+"tab_cards" = "Karten";
+"tab_mycards" = "Meine Karten";
+"tab_community" = "Community";
+"tab_exploit" = "Exploit";
+
+"cards_tap_to_customize" = "Tippe auf eine Karte zum Anpassen";
+"cards_swipe_hint" = "Wische für weitere Karten";
+"cards_refresh" = "Karten aktualisieren";
+"cards_none_found" = "Keine Karten gefunden";
+"cards_none_found_alert" = "Keine Karten gefunden";
+"cards_path_label" = "Pfad: %@";
+"cards_last_root" = "Letzter erkannter Kartenpfad: %@";
+"cards_run_exploit_hint" = "Gehe zum Exploit-Tab und tippe zuerst auf Alles ausführen.";
+"cards_open_wallet" = "Wallet öffnen";
+"cards_run_all_scan" = "Alles ausführen + Scannen";
+"cards_scan_again" = "Erneut scannen";
+
+"exploit_engine" = "Exploit-Engine";
+"exploit_offset_placeholder" = "kernproc Offset (hex)";
+"exploit_set" = "Setzen";
+"exploit_running" = "Läuft...";
+"exploit_run_darksword" = "DarkSword starten";
+"exploit_escape_sandbox" = "Sandbox verlassen";
+"exploit_run_all" = "Alles ausführen";
+"exploit_complete" = "Exploit abgeschlossen — Sandbox verlassen";
+"exploit_copy_logs" = "Logs kopieren";
+"exploit_no_logs" = "Noch keine Logs.";
+"exploit_resolve_offsets" = "Offsets auflösen";
+"exploit_resolving" = "Auflösung...";
+"exploit_clear_cache" = "Kernel-Cache löschen";
+
+"status_checking" = "Umgebung wird geprüft...";
+"status_ready" = "Bereit";
+"status_darksword_running" = "Darksword wird ausgeführt...";
+"status_resolving_offsets" = "Kernel-Offsets werden aufgelöst...";
+"status_no_cards_path" = "Kartenpfad nicht erkannt.";
+"status_missing_offset" = "Kernproc-Offset fehlt. Automatische Auflösung...";
+"status_run_darksword" = "Starte zuerst Darksword.";
+"status_escape_sandbox" = "Verlasse die Sandbox zum Dateizugriff.";
+"status_not_ready" = "Exploit-Kontext nicht bereit.";
+"status_no_wallet_path" = "Wallet-Kartenpfad nicht gefunden.";
+"status_write_available" = "Direkter Schreibzugriff verfügbar.";
+"status_no_write_import_offset" = "Kein Schreibzugriff. Offsets werden aufgelöst.";
+"status_no_write_run_exploit" = "Kein Schreibzugriff. Starte Darksword + Sandbox verlassen.";
+"status_no_write_escape" = "Kein Schreibzugriff. Verlasse zuerst die Sandbox.";
+"status_no_write_retry" = "Kein Schreibzugriff trotz Sandbox-Flucht. Erneut versuchen.";
+
+"card_rename" = "Umbenennen";
+"card_restore" = "Wiederherstellen";
+"card_save" = "Speichern";
+"card_error" = "Fehler";
+"card_ok" = "OK";
+"card_saved" = "Gespeichert";
+"card_saved_message" = "Kartenbild in Dokumente gespeichert.";
+"card_rename_title" = "Karte umbenennen";
+"card_nickname_placeholder" = "Spitzname";
+"card_rename_save" = "Speichern";
+"card_clear_name" = "Name löschen";
+"card_cancel" = "Abbrechen";
+"card_rename_message" = "Gib dieser Karte einen Namen zur einfachen Identifizierung.";
+
+"mycards_title" = "Meine Karten";
+"mycards_subtitle" = "Sichere deine Apple Pay-Kartenbilder.";
+"mycards_backup_all" = "Alle Karten sichern";
+"mycards_no_device_cards" = "Keine Karten erkannt. Führe den Exploit zuerst aus.";
+"mycards_empty" = "Keine gespeicherten Karten";
+"mycards_empty_hint" = "Sichere deine Karten vor dem Anpassen.";
+"mycards_delete_title" = "Karte löschen";
+"mycards_delete" = "Löschen";
+"mycards_delete_confirm" = "Dieses Backup entfernen?";
+"mycards_apply" = "Anwenden";
+
+"community_title" = "Community-Karten";
+"community_subtitle" = "Lade Kartenhintergründe herunter und wende sie an.";
+"community_search" = "Karten suchen...";
+"community_attribution" = "Kartenbilder aus der Community auf";
+"community_tap_retry" = "Tippe zum Wiederholen";
+"community_download" = "Herunterladen";
+"support_kofi" = "Unterstütze auf Ko-fi ☕";
+
+/* Card number editor */
+"card_number_edit" = "Nummer";
+"card_number_title" = "Kartennummer Bearbeiten";
+"card_number_placeholder" = "Letzte 4 Ziffern";
+"card_number_message" = "Aktuelle Nummer auf der Karte: %@\nGib neue Ziffern ein oder lass leer zum Entfernen.";
+"card_number_message_empty" = "Keine Nummer auf dieser Karte angezeigt.\nGib Ziffern ein, die angezeigt werden sollen.";
+"card_number_restore_original" = "Original wiederherstellen";
+"card_number_read_error" = "pass.json dieser Karte konnte nicht gelesen werden.";
+"card_number_no_backup" = "Kein pass.json-Backup gefunden.";
+
+/* Image source picker */
+"card_pick_source" = "Bildquelle wählen";
+"card_source_gallery" = "Fotomediathek";
+"card_source_files" = "Dateien";
+"join_discord" = "Discord beitreten";
+
+/* Community save destination */
+"community_save_where" = "Speichern in...";
+"community_save_gallery" = "Fotomediathek";
+"community_save_documents" = "Dokumente";
+
+/* My Cards submit */
+"mycards_submit" = "Einreichen";
+"mycards_submit_opened" = "GitHub wird geoeffnet, um deine Karte einzureichen...";
+"mycards_submit_error" = "GitHub konnte nicht geoeffnet werden.";
+"mycards_submit_read_error" = "Kartendaten konnten nicht gelesen werden.";
+
+/* Custom card submission */
+"custom_submit_button" = "Eigenes Kartendesign Einreichen";
+"custom_submit_hint" = "Dein Design wird von einem Betreuer geprüft, bevor es hinzugefügt wird.";
+"custom_submit_error" = "Einreichung konnte nicht vorbereitet werden.";
+"custom_submit_opened" = "GitHub wird geöffnet, um deine benutzerdefinierte Karte einzureichen...";
+"custom_submit_send" = "Einreichen";
+"custom_submitting" = "Wird gesendet...";
+"custom_submit_success" = "Karte zur Überprüfung eingereicht!";
+"github_token_missing" = "GitHub-Token nicht konfiguriert.";
+"github_token_invalid" = "GitHub-Token abgelaufen oder ungültig.";
+"custom_name_title" = "Kartenname";
+"custom_name_placeholder" = "z.B. Mein eigenes Design";
+"custom_name_message" = "Gib einen Namen für dein Kartendesign ein.";
+
+/* Submit sheet */
+"submit_sheet_title" = "Karte einreichen";
+"submit_section_info" = "Karteninformationen";
+"submit_card_name" = "Kartenname";
+"submit_issuer" = "Herausgeber (z.B. Chase, Amex)";
+"submit_country" = "Land (z.B. US, DE)";
+
+/* Settings */
+"settings_system_language" = "Systemsprache";
