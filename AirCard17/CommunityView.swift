@@ -259,7 +259,7 @@ private let builtInCards: [CommunityCard] = [
     // ── US ── Brex ──
     CommunityCard(id: "brex-brex-card", name: "Brex Card", issuer: "Brex", country: "US", category: "Other US", imageURL: "https://u.cubeupload.com/ccbackground/brex.png", author: nil),
     CommunityCard(id: "brex-brex", name: "Brex金属卡", issuer: "Brex", country: "US", category: "Other US", imageURL: "https://u.cubeupload.com/cubelin/Brex.jpeg", author: nil),
-    CommunityCard(id: "brex-brex", name: "Brex预算管理虚拟卡", issuer: "Brex", country: "US", category: "Other US", imageURL: "https://u.cubeupload.com/cubelin/Brex2.jpeg", author: nil),
+    CommunityCard(id: "brex-brex-budget-virtual", name: "Brex预算管理虚拟卡", issuer: "Brex", country: "US", category: "Other US", imageURL: "https://u.cubeupload.com/cubelin/Brex2.jpeg", author: nil),
 
     // ── US ── CB&T ──
     CommunityCard(id: "cbandt-cb-amp-t-amazing-cash-for-busi", name: "CB&amp;T AmaZing Cash for Business", issuer: "CB&T", country: "US", category: "Other US", imageURL: "https://asset-cdn.uscardforum.com/original/4X/6/5/3/653b919bb84a488dc147e532418b584ca8e78d8a.jpeg", author: nil),
@@ -544,7 +544,24 @@ final class CommunityViewModel: ObservableObject {
                 self?.updateFilteredSections()
             }
             .store(in: &cancellables)
+
+        // Render the bundled catalog immediately. The remote catalog is optional
+        // and must not hold the entire Community tab behind a network request.
+        let initialSections = Self.buildSectionsOffMain(
+            cards: Self.uniqueCards(builtInCards),
+            countryOrder: countryOrder,
+            categoryOrder: categoryOrder
+        )
+        countrySections = initialSections
+        displayedSections = initialSections
+        isLoading = false
+
         Task { await loadAndBuild() }
+    }
+
+    nonisolated private static func uniqueCards(_ cards: [CommunityCard]) -> [CommunityCard] {
+        var seen = Set<String>()
+        return cards.filter { seen.insert($0.id).inserted }
     }
 
     private func updateFilteredSections() {
@@ -575,8 +592,8 @@ final class CommunityViewModel: ObservableObject {
         print("[community] remote catalog: \(remote.count) cards fetched")
         if !remote.isEmpty {
             // Merge: built-in + remote, deduplicate by id
-            var seen = Set(builtInCards.map(\.id))
-            var merged = builtInCards
+            var merged = Self.uniqueCards(builtInCards)
+            var seen = Set(merged.map(\.id))
             for card in remote {
                 if !seen.contains(card.id) {
                     seen.insert(card.id)
