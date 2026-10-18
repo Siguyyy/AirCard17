@@ -667,13 +667,35 @@ struct ContentView: View {
         refreshOffsetInputFromState()
     }
 
-    private func recheckAndReload() {
+    private func recheckAndReload(allowAutomaticRecovery: Bool = true) {
         hasAttemptedInitialScan = true
         exploit.refreshAccessProbe()
         if !exploit.prefersDirectAccessMode {
             exploit.refreshKernprocOffsetState()
         }
         loadCards()
+
+        // A Wallet scan is the primary action for this app. If access is not
+        // ready yet, recover it automatically instead of leaving the user at
+        // "Missing kernproc offset" with no next step.
+        guard allowAutomaticRecovery,
+              !exploit.prefersDirectAccessMode,
+              !exploit.canApplyCardChanges else {
+            return
+        }
+
+        if !exploit.hasKernprocOffset && !exploit.xpfResolving {
+            exploit.resolveOffsetsViaXPF { resolved in
+                guard resolved else { return }
+                self.exploit.runAll { _ in
+                    self.recheckAndReload(allowAutomaticRecovery: false)
+                }
+            }
+        } else if exploit.hasKernprocOffset && !exploit.darkswordRunning && !exploit.sandboxEscaped {
+            exploit.runAll { _ in
+                self.recheckAndReload(allowAutomaticRecovery: false)
+            }
+        }
     }
 
     private func runAllAndReload() {
