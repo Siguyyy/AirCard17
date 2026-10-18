@@ -1,5 +1,7 @@
 ﻿import SwiftUI
 import Combine
+import ImageIO
+import UIKit
 
 // MARK: - Data Model
 
@@ -778,7 +780,29 @@ final class CommunityViewModel: ObservableObject {
     static func cachedImage(for cardID: String) -> UIImage? {
         let path = cacheKey(for: cardID)
         guard let data = try? Data(contentsOf: path) else { return nil }
-        return UIImage(data: data)
+        return thumbnailImage(from: data)
+    }
+
+    static func thumbnailImage(from data: Data) -> UIImage? {
+        let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
+        guard let source = CGImageSourceCreateWithData(data as CFData, sourceOptions) else {
+            return nil
+        }
+
+        let thumbnailOptions: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: 420
+        ]
+        guard let image = CGImageSourceCreateThumbnailAtIndex(
+            source,
+            0,
+            thumbnailOptions as CFDictionary
+        ) else {
+            return nil
+        }
+        return UIImage(cgImage: image)
     }
 
     static func cacheImageData(_ data: Data, for cardID: String) {
@@ -887,7 +911,7 @@ struct CommunityView: View {
                                         .padding(.horizontal, 16)
 
                                     ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 12) {
+                                        LazyHStack(spacing: 12) {
                                             ForEach(category.cards) { card in
                                                 CommunityCardCell(card: card, vm: vm)
                                             }
@@ -1001,8 +1025,13 @@ final class RemoteImageLoader: ObservableObject {
 
     private var url: URL?
     private var cardID: String?
+    private var task: URLSessionDataTask?
     private var retryCount = 0
     private static let maxRetries = 2
+
+    deinit {
+        task?.cancel()
+    }
 
     func load(from urlString: String, cardID: String) {
         guard let url = URL(string: urlString) else {
@@ -1028,6 +1057,12 @@ final class RemoteImageLoader: ObservableObject {
         fetchImage()
     }
 
+    func cancel() {
+        task?.cancel()
+        task = nil
+        loading = false
+    }
+
     private func fetchImage() {
         guard let url else { return }
         loading = true
@@ -1036,7 +1071,8 @@ final class RemoteImageLoader: ObservableObject {
         request.timeoutInterval = 15
         request.cachePolicy = .returnCacheDataElseLoad
 
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        task?.cancel()
+        task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.loading = false
@@ -1044,7 +1080,7 @@ final class RemoteImageLoader: ObservableObject {
                 if let data, error == nil,
                    let httpResp = response as? HTTPURLResponse,
                    httpResp.statusCode == 200,
-                   let img = UIImage(data: data) {
+                   let img = CommunityViewModel.thumbnailImage(from: data) {
                     self.image = img
                     // Cache to disk
                     if let id = self.cardID, let pngData = img.pngData() {
@@ -1059,7 +1095,8 @@ final class RemoteImageLoader: ObservableObject {
                     self.failed = true
                 }
             }
-        }.resume()
+        }
+        task?.resume()
     }
 }
 
@@ -1104,6 +1141,9 @@ struct CommunityCardCell: View {
                 if loader.image == nil && !loader.loading {
                     loader.load(from: card.imageURL, cardID: card.id)
                 }
+            }
+            .onDisappear {
+                loader.cancel()
             }
 
             Text(card.name)
