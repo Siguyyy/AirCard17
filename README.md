@@ -48,7 +48,7 @@ For a platinum-style look, start with a wide image containing the background, is
 
 ## Build from source
 
-The repository builds on GitHub Actions using a macOS runner, so a local Mac is not required for the standard unsigned IPA workflow.
+The repository builds on GitHub Actions using a macOS runner, so a local Mac is not required for the standard unsigned IPA workflow. The workflow runs on pushes to `main` and can also be started manually from the Actions tab.
 
 ```bash
 xcodebuild \
