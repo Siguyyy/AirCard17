@@ -1,0 +1,74 @@
+name: Publish compatibility releases
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-releases.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ios17:
+    name: Build and publish iOS 17 legacy
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build unsigned iOS 17 IPA
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project AirCard17.xcodeproj \
+            -scheme AirCard17 \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
+          app="build/Build/Products/Release-iphoneos/AirCard17.app"
+          test -d "$app"
+          rm -rf Payload
+          mkdir Payload
+          cp -R "$app" Payload/
+          zip -qry AirCard17-iOS17.ipa Payload
+
+      - name: Publish iOS 17 release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios17-legacy
+          name: AirCard17 — iOS 17 Legacy
+          body: |
+            Last working iOS 17 build. Use this release only on iOS 17.x.
+            iOS 18–26 users should install the Airlift pairing build instead.
+          prerelease: false
+          make_latest: false
+          files: AirCard17-iOS17.ipa
+
+  ios26:
+    name: Publish iOS 18-26 Airlift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download compatible Airlift IPA
+        run: |
+          curl -L --fail --retry 3 \
+            -o AirCard17-iOS18-26.ipa \
+            https://github.com/Mak5er/AirCard-iOS/releases/download/v1.3.2/AirCard-iOS.ipa
+
+      - name: Publish iOS 18-26 release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios18-26-airlift
+          name: AirCard17 — iOS 18–26 Airlift
+          body: |
+            iOS 18.0–26.x build using Airlift pairing files.
+            Import a valid SideStore, AltStore, Jitterbug, or computer pairing file before Wallet Scan.
+            This build does not use kernproc offsets.
+          prerelease: false
+          make_latest: true
+          files: AirCard17-iOS18-26.ipa
