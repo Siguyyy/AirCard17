@@ -18,7 +18,6 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-
       - name: Build unsigned iOS 17 IPA
         run: |
           set -euo pipefail
@@ -39,7 +38,6 @@ jobs:
           mkdir Payload
           cp -R "$app" Payload/
           zip -qry AirCard17-iOS17.ipa Payload
-
       - name: Publish iOS 17 release
         uses: softprops/action-gh-release@v2
         with:
@@ -58,82 +56,11 @@ jobs:
     steps:
       - name: Check out AirCard17
         uses: actions/checkout@v4
-
       - name: Check out Airlift backend
         run: git clone --depth 1 https://github.com/Mak5er/AirCard-iOS.git airlift
-
       - name: Overlay legacy AirCard17 UI
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          root = Path(".")
-          airlift = root / "airlift"
-          legacy = root / "AirCard17" / "AirCard17"
-
-          # Keep the modern Airlift engine and append the legacy community/catalog
-          # views to a compiled source file so no project-file regeneration is needed.
-          content = airlift / "ios-app" / "ContentView.swift"
-          additions = []
-          for name in ("CommunityView.swift", "ImagePicker.swift", "LanguageManager.swift", "GitHubService.swift"):
-              source = legacy / name
-              text = source.read_text(encoding="utf-8-sig")
-              text = "\n".join(line for line in text.splitlines() if not line.startswith("import "))
-              additions.append("\n\n// Legacy AirCard17 UI overlay: " + name + "\n" + text)
-          content.write_text(content.read_text(encoding="utf-8") + "".join(additions), encoding="utf-8")
-
-          models = airlift / "ios-app" / "Models.swift"
-          text = models.read_text(encoding="utf-8")
-          text = text.replace(
-              'case pairing = "Pairing"\n    case walletCards = "Wallet Cards"',
-              'case walletCards = "Wallet Cards"\n    case community = "Community"\n    case pairing = "Pairing"'
-          )
-          models.write_text(text, encoding="utf-8")
-
-          vm = airlift / "ios-app" / "AppViewModel.swift"
-          text = vm.read_text(encoding="utf-8")
-          text = text.replace('@Published var selectedTab: AppTab = .pairing',
-                              '@Published var selectedTab: AppTab = .walletCards')
-          vm.write_text(text, encoding="utf-8")
-
-          text = content.read_text(encoding="utf-8")
-          start = text.index('        TabView(selection: $vm.selectedTab) {')
-          end = text.index('        .alert("Notice", isPresented: Binding(', start)
-          shell = '''        TabView(selection: $vm.selectedTab) {
-              WalletCardsTab()
-                  .tabItem { Label("Cards", systemImage: "creditcard.fill") }
-                  .tag(AppTab.walletCards)
-
-              CommunityView()
-                  .tabItem { Label("Community", systemImage: "globe") }
-                  .tag(AppTab.community)
-
-              PairingTab()
-                  .tabItem { Label("Pairing", systemImage: "antenna.radiowaves.left.and.right") }
-                  .tag(AppTab.pairing)
-
-              PasscodeThemeTab()
-                  .tabItem { Label("Passcode", systemImage: "lock.circle.fill") }
-                  .tag(AppTab.passcodeThemes)
-
-              TendiesView()
-                  .tabItem { Label("Wallpapers", systemImage: "photo.stack.fill") }
-                  .tag(AppTab.wallpapers)
-          }
-'''
-          text = text[:start] + shell + text[end:]
-          text = text.replace(
-              '        .sheet(isPresented: $showSupportPopup) {\n            SupportPopupSheet(dontShowOnLaunch: $dontShowSupportOnLaunch)\n        }\n',
-              ''
-          )
-          content.write_text(text, encoding="utf-8")
-
-          info = airlift / "ios-app" / "Info.plist"
-          text = info.read_text(encoding="utf-8")
-          text = text.replace("<string>AirCard-iOS</string>", "<string>AirCard17</string>")
-          info.write_text(text, encoding="utf-8")
-          PY
-
+          python3 .github/legacy_overlay.py
       - name: Build AirCard17 iOS 18-26 IPA
         run: |
           set -euo pipefail
@@ -158,7 +85,6 @@ jobs:
           mkdir Payload
           cp -R "$app" Payload/
           zip -qry AirCard17-iOS18-26.ipa Payload
-
       - name: Publish iOS 18-26 release
         uses: softprops/action-gh-release@v2
         with:
