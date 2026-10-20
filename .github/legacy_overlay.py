@@ -5,6 +5,11 @@ airlift = root / "airlift"
 legacy = root / "AirCard17"
 
 content = airlift / "ios-app" / "ContentView.swift"
+base = content.read_text(encoding="utf-8")
+if "import Combine" not in base.split("\n", 12):
+    base = "import Combine\n" + base
+content.write_text(base, encoding="utf-8")
+
 additions = []
 for name in ("CommunityView.swift", "ImagePicker.swift", "LanguageManager.swift", "GitHubService.swift"):
     source = legacy / name
