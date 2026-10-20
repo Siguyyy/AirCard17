@@ -2,7 +2,7 @@ from pathlib import Path
 
 root = Path(".")
 airlift = root / "airlift"
-legacy = root / "AirCard17" / "AirCard17"
+legacy = root / "AirCard17"
 
 content = airlift / "ios-app" / "ContentView.swift"
 additions = []
