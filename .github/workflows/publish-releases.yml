@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/publish-releases.yml"
+      - ".github/legacy_overlay.py"
       - "AirCard17/**"
       - "AirCard17.xcodeproj/**"
   workflow_dispatch:
