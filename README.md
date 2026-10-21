@@ -46,6 +46,22 @@ The unsigned IPA is not signed by this repository. Sign or sideload it with your
 
 For a platinum-style look, start with a wide image containing the background, issuer mark, and any design text you want. Use artwork you are allowed to use; AirCard17 does not provide or endorse bank-branded artwork.
 
+## Experimental iOS 17 wallpaper build
+
+The `experimental-ios17-wallpapers` branch contains a separate test build that adapts the legacy `.Trash` PosterBoard method used by Pocket Poster. It is not merged into the stable iOS 17 release.
+
+To test it:
+
+1. Download `aircard17-ios17-wallpapers-experimental.ipa` from the successful Actions run on the experimental branch and unzip the downloaded GitHub artifact once to obtain the IPA.
+2. Install the IPA with your normal sideloader.
+3. Connect the iPhone to a computer and use Nugget's **Settings → Pocket Poster Helper** to obtain the PosterBoard app hash/UUID. The experimental AirCard build does not automatically detect this value.
+4. Open AirCard17 → **Wallpapers**, paste the hash, and tap **Save Hash**.
+5. Import a complete `.tendies` file and tap **Apply Wallpapers**. Test one wallpaper first.
+6. Reboot the iPhone manually after the app reports success.
+7. Long-press the Lock Screen → **Customize** or **+**, then select the imported wallpaper from the native wallpaper picker.
+
+This build uses a filesystem symlink/trash operation. If it fails, stop retrying and switch back to the stable IPA. Switching applications does not automatically remove any descriptors already injected into PosterBoard; use Pocket Poster/Nugget's PosterBoard reset/collections reset workflow if the native wallpaper picker becomes inconsistent.
+
 ## Build from source
 
 The repository builds on GitHub Actions using a macOS runner, so a local Mac is not required for the standard unsigned IPA workflow.
