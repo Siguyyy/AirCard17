@@ -13,6 +13,9 @@ on:
       - ".github/workflows/build-ios.yml"
       - "AirCard17/nfcd_a3/**"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-14
@@ -153,6 +156,34 @@ jobs:
           path: |
             aircard17-trollstore.tipa
             aircard17-trollstore-entitlements.plist
+
+      - name: Publish rolling release download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_REF_NAME}" = "experimental-ios17-wallpapers" ]; then
+            RELEASE_TAG="aircard17-ios17-latest"
+            RELEASE_TITLE="AirCard17 iOS 17 Experimental (latest)"
+            RELEASE_ASSET="aircard17-ios17-wallpapers-experimental.ipa"
+            RELEASE_NOTES="Rolling direct-download build from the experimental iOS 17 wallpaper branch."
+          else
+            RELEASE_TAG="stable-latest"
+            RELEASE_TITLE="AirCard17 Stable (latest)"
+            RELEASE_ASSET="aircard17-unsigned.ipa"
+            RELEASE_NOTES="Rolling direct-download build from the stable branch."
+          fi
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$RELEASE_ASSET" --clobber
+          else
+            gh release create "$RELEASE_TAG" "$RELEASE_ASSET" \
+              --title "$RELEASE_TITLE" \
+              --notes "$RELEASE_NOTES" \
+              --prerelease \
+              --target "$GITHUB_SHA"
+          fi
 
       - name: Upload build logs
         if: always()

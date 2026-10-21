@@ -16,6 +16,13 @@ This project is intended for personal device customization. It does not change c
 
 The app retains the inherited diagnostic and access screen because iOS 17 devices differ in what sideloading method and entitlements they provide. The main workflow is Cards → tap a card → choose an image.
 
+<p align="center">
+  <a href="https://github.com/Siguyyy/AirCard17/releases/download/aircard17-ios17-latest/aircard17-ios17-wallpapers-experimental.ipa"><img src="https://img.shields.io/badge/Download-iOS%2017%20Experimental%20IPA-2ea44f?style=for-the-badge&logo=apple" alt="Download iOS 17 experimental IPA"></a>
+  <a href="https://github.com/Siguyyy/AirCard17/releases/download/stable-latest/aircard17-unsigned.ipa"><img src="https://img.shields.io/badge/Download-Stable%20IPA-24292f?style=for-the-badge&logo=apple" alt="Download stable IPA"></a>
+</p>
+
+The buttons above download the IPA directly from the rolling GitHub Releases entries. GitHub may show a warning before the download; keep the file extension as `.ipa` and install it with your sideloader.
+
 ## Compatibility
 
 The practical route depends on the exact device and iOS build:
