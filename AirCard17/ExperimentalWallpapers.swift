@@ -256,15 +256,18 @@ final class ExperimentalPosterBoardManager: ObservableObject {
         }
 
         do {
-            let database = try openDatabase(paths: [databaseURL.path, directDatabasePath])
-            defer { sqlite3_close(database) }
-            try updateCollectionsDatabase(database, registrations: registrations)
+            // Prefer the offline copy. Opening the live PosterBoard database can
+            // succeed while BEGIN IMMEDIATE still fails because PosterBoard has
+            // a read transaction open.
+            try updateDatabaseUsingKernelOverwrite(path: directDatabasePath, registrations: registrations, expectedSize: kernelSize)
             return
-        } catch is WallpaperError {
-            append("Direct SQLite access failed; falling back to kernel-backed database replacement…")
+        } catch {
+            append("Offline database replacement failed (\(error.localizedDescription)); trying the live database as a last resort…")
         }
 
-        try updateDatabaseUsingKernelOverwrite(path: directDatabasePath, registrations: registrations, expectedSize: kernelSize)
+        let database = try openDatabase(paths: [databaseURL.path, directDatabasePath])
+        defer { sqlite3_close(database) }
+        try updateCollectionsDatabase(database, registrations: registrations)
     }
 
     private func updateCollectionsDatabase(_ database: OpaquePointer?, registrations: [PosterRegistration]) throws {
@@ -307,6 +310,8 @@ final class ExperimentalPosterBoardManager: ObservableObject {
         defer {
             try? FileManager.default.removeItem(at: original)
             try? FileManager.default.removeItem(at: staged)
+            try? FileManager.default.removeItem(atPath: staged.path + "-wal")
+            try? FileManager.default.removeItem(atPath: staged.path + "-shm")
         }
 
         guard let data = helper.kfsReadFile(path, maxSize: expectedSize + 1024 * 1024) else {
@@ -314,6 +319,17 @@ final class ExperimentalPosterBoardManager: ObservableObject {
             throw WallpaperError.databaseUnavailable
         }
         try data.write(to: original, options: .atomic)
+
+        // A live PosterBoard database may be using WAL mode. Copy the WAL into
+        // the offline database, but deliberately omit -shm because its lock
+        // bytes are process-local and would make the copied database appear
+        // locked as well.
+        let walPath = path + "-wal"
+        let walLocal = URL(fileURLWithPath: staged.path + "-wal")
+        if let walSize = positiveKernelFileSize(walPath),
+           let walData = helper.kfsReadFile(walPath, maxSize: walSize + 1024 * 1024) {
+            try walData.write(to: walLocal, options: .atomic)
+        }
         try FileManager.default.copyItem(at: original, to: staged)
 
         let database = try openDatabase(paths: [staged.path])
@@ -341,6 +357,11 @@ final class ExperimentalPosterBoardManager: ObservableObject {
             throw WallpaperError.databaseUnavailable
         }
         append("PosterBoard Collections database updated through the kernel bridge (\(registrations.count) requested).")
+    }
+
+    private func positiveKernelFileSize(_ path: String) -> Int64? {
+        let size = helper.kfsFileSizeNC(path)
+        return size > 0 ? size : nil
     }
 
     private func openDatabase(paths: [String]) throws -> OpaquePointer {
