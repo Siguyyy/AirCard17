@@ -58,11 +58,11 @@ final class ExperimentalPosterBoardManager: ObservableObject {
                 let root = try extract(file)
                 try applyRoot(root)
             }
-            removeLink()
+            try? removeLink()
             append("Done. Open the native Lock Screen wallpaper picker to choose it.")
             selectedFiles.removeAll()
         } catch {
-            removeLink()
+            try? removeLink()
             append("ERROR: \(error.localizedDescription)")
         }
     }
@@ -146,7 +146,7 @@ struct ExperimentalWallpapersView: View {
     @State private var showImporter = false
 
     var body: some View {
-        NavigationStack {
+            NavigationView {
             Form {
                 Section("Experimental iOS 17 Wallpapers") {
                     Text("Uses the legacy PosterBoard .Trash method. Keep a backup and test one wallpaper at a time.")
