@@ -56,9 +56,12 @@ To test it:
 2. Install the IPA with your normal sideloader.
 3. Open AirCard17 → **Wallpapers** and tap **Detect PosterBoard Automatically**. The app will first attempt to prepare its existing iOS 17 filesystem access, then scan for the PosterBoard container itself.
 4. If automatic detection fails, connect the iPhone to a computer and use Nugget's **Settings → Pocket Poster Helper** to obtain the PosterBoard app hash/UUID. Paste the value into AirCard17 and tap **Save Hash**. Pocket Poster is not required for the automatic path.
-5. Import a complete `.tendies` file and tap **Apply Wallpapers**. Test one wallpaper first.
-6. Reboot the iPhone manually after the app reports success.
-7. Long-press the Lock Screen → **Customize** or **+**, then select the imported wallpaper from the native wallpaper picker.
+5. Close the native wallpaper picker/PosterBoard from the app switcher before applying. Import one complete `.tendies` file and tap **Apply Wallpapers**.
+6. Confirm the log says `PosterBoard Collections database updated (...)`. If it instead says the database was not reachable, stop there—the descriptors were copied but the wallpaper was not registered in Collections.
+7. Reboot the iPhone manually after the app reports success.
+8. Long-press the Lock Screen → **Customize** or **+**, then select the imported wallpaper from the native wallpaper picker under Collections.
+
+The experimental build now randomizes the descriptor folder UUID and registers each imported descriptor in `PBFPosterExtensionDataStoreSQLiteDatabase.sqlite3`, matching the registration approach used by Nugget. This is the part the earlier build was missing. Keep at least 2 GB free on the phone while testing; PosterBoard and SQLite can fail when storage is nearly full.
 
 This build uses a filesystem symlink/trash operation. If it fails, stop retrying and switch back to the stable IPA. Switching applications does not automatically remove any descriptors already injected into PosterBoard; use Pocket Poster/Nugget's PosterBoard reset/collections reset workflow if the native wallpaper picker becomes inconsistent.
 

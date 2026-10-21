@@ -33,6 +33,7 @@
 		D700000128EE000000111001 /* AssetDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D700000228EE000000111001 /* AssetDocumentPicker.swift */; };
 		F700000128F5000000000001 /* ExperimentalWallpapers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F700000528F5000000000001 /* ExperimentalWallpapers.swift */; };
 		F700000228F5000000000001 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = F700000328F5000000000001 /* ZIPFoundation */; };
+		F700000628F5000000000001 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = F700000728F5000000000001 /* libsqlite3.tbd */; };
 		EA00000328F1000000000001 /* NFCCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA00000228F1000000000001 /* NFCCard.swift */; };
 		EA00000528F1000000000001 /* NFCCardReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA00000428F1000000000001 /* NFCCardReader.swift */; };
 		EA00000728F1000000000001 /* NFCDaemonManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA00000628F1000000000001 /* NFCDaemonManager.swift */; };
@@ -125,6 +126,7 @@
 		EA02001028F3000000000001 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		EA02002028F3000000000001 /* nfcd_a3.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = nfcd_a3.entitlements; sourceTree = "<group>"; };
 		F700000528F5000000000001 /* ExperimentalWallpapers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperimentalWallpapers.swift; sourceTree = "<group>"; };
+		F700000728F5000000000001 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +137,7 @@
 				D400000128EB000000DDD001 /* lib/libxpf.dylib in Frameworks */,
 				D400000428EB000000DDD001 /* lib/libgrabkernel2.dylib in Frameworks */,
 				F700000228F5000000000001 /* ZIPFoundation in Frameworks */,
+				F700000628F5000000000001 /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
