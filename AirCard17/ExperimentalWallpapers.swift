@@ -12,6 +12,7 @@ final class ExperimentalPosterBoardManager: ObservableObject {
     @Published var appHash = UserDefaults.standard.string(forKey: "aircard17.posterboard_hash") ?? ""
     @Published var log: [String] = []
     @Published var isApplying = false
+    @Published var isDetecting = false
 
     private let extensionVersion = "61" // iOS 17+ PosterBoard layout
 
@@ -22,6 +23,9 @@ final class ExperimentalPosterBoardManager: ObservableObject {
     private var trashLink: URL {
         documents.appendingPathComponent(".Trash", isDirectory: false)
     }
+
+    private let exploit = ExploitManager.shared
+    private let helper = ObjcHelper()
 
     func saveHash() {
         appHash = appHash.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -37,6 +41,61 @@ final class ExperimentalPosterBoardManager: ObservableObject {
     func clear() {
         selectedFiles.removeAll()
         log.removeAll()
+    }
+
+    /// Finds the PosterBoard data-container UUID directly instead of relying on
+    /// Nugget/Pocket Poster to pass it through AFC.
+    func detectPosterBoardHash() async {
+        guard !isDetecting else { return }
+        isDetecting = true
+        defer { isDetecting = false }
+
+        if !exploit.kfsReady && !exploit.directWriteReady {
+            append("Preparing filesystem access…")
+            await withCheckedContinuation { continuation in
+                exploit.runAll { _ in continuation.resume() }
+            }
+        }
+
+        let roots = [
+            "/var/mobile/Containers/Data/Application",
+            "/private/var/mobile/Containers/Data/Application"
+        ]
+
+        for root in roots {
+            let entries = directoryEntries(at: root)
+            for entry in entries where UUID(uuidString: entry) != nil {
+                let base = root + "/" + entry
+                let extensions = base + "/Library/Application Support/PRBPosterExtensionDataStore/61/Extensions"
+                if directoryExists(at: extensions) {
+                    appHash = entry
+                    saveHash()
+                    append("Detected PosterBoard app hash: \(entry)")
+                    return
+                }
+            }
+        }
+
+        append("PosterBoard container was not found. Leave the phone unlocked and run Access/Exploit once, then try Detect again.")
+    }
+
+    private func directoryEntries(at path: String) -> [String] {
+        if let direct = try? FileManager.default.contentsOfDirectory(atPath: path), !direct.isEmpty {
+            return direct
+        }
+        guard exploit.kfsReady else { return [] }
+        return helper.kfsListDirectory(path)
+    }
+
+    private func directoryExists(at path: String) -> Bool {
+        if FileManager.default.fileExists(atPath: path) {
+            var isDirectory = ObjCBool(false)
+            if FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) {
+                return isDirectory.boolValue
+            }
+        }
+        guard exploit.kfsReady else { return false }
+        return helper.kfsFileSizeNC(path) >= -2
     }
 
     func apply() async {
@@ -155,6 +214,9 @@ struct ExperimentalWallpapersView: View {
                     TextField("PosterBoard app hash", text: $manager.appHash)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                    Button(manager.isDetecting ? "Detecting…" : "Detect PosterBoard Automatically") {
+                        Task { await manager.detectPosterBoardHash() }
+                    }
                     Button("Save Hash") { manager.saveHash() }
                 }
                 Section("Wallpapers") {

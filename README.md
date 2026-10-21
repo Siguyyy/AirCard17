@@ -54,8 +54,8 @@ To test it:
 
 1. Download `aircard17-ios17-wallpapers-experimental.ipa` from the successful Actions run on the experimental branch and unzip the downloaded GitHub artifact once to obtain the IPA.
 2. Install the IPA with your normal sideloader.
-3. Connect the iPhone to a computer and use Nugget's **Settings → Pocket Poster Helper** to obtain the PosterBoard app hash/UUID. The experimental AirCard build does not automatically detect this value.
-4. Open AirCard17 → **Wallpapers**, paste the hash, and tap **Save Hash**.
+3. Open AirCard17 → **Wallpapers** and tap **Detect PosterBoard Automatically**. The app will first attempt to prepare its existing iOS 17 filesystem access, then scan for the PosterBoard container itself.
+4. If automatic detection fails, connect the iPhone to a computer and use Nugget's **Settings → Pocket Poster Helper** to obtain the PosterBoard app hash/UUID. Paste the value into AirCard17 and tap **Save Hash**. Pocket Poster is not required for the automatic path.
 5. Import a complete `.tendies` file and tap **Apply Wallpapers**. Test one wallpaper first.
 6. Reboot the iPhone manually after the app reports success.
 7. Long-press the Lock Screen → **Customize** or **+**, then select the imported wallpaper from the native wallpaper picker.
