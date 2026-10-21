@@ -118,12 +118,30 @@ final class ExperimentalPosterBoardManager: ObservableObject {
                 try applyRoot(root)
             }
             try? removeLink()
-            append("Done. Open the native Lock Screen wallpaper picker to choose it.")
+            append("Done. Refreshing PosterBoard…")
+            if openPosterBoard() {
+                append("PosterBoard opened. Close it from the app switcher, then open the native wallpaper picker.")
+            } else {
+                append("PosterBoard could not be opened automatically. Reboot the phone, then open the native wallpaper picker.")
+            }
             selectedFiles.removeAll()
         } catch {
             try? removeLink()
             append("ERROR: \(error.localizedDescription)")
         }
+    }
+
+    /// PosterBoard caches its collection list. Pocket Poster refreshes that
+    /// cache by opening PosterBoard and asking the user to close it once.
+    /// Keep this as a separate action so a user can retry the refresh without
+    /// reinjecting the wallpaper descriptors.
+    @discardableResult
+    func openPosterBoard() -> Bool {
+        guard let workspaceClass = objc_getClass("LSApplicationWorkspace") as? NSObject,
+              let workspace = workspaceClass.perform(Selector(("defaultWorkspace")))?.takeUnretainedValue() as? NSObject,
+              let result = workspace.perform(Selector(("openApplicationWithBundleID:")), with: "com.apple.PosterBoard")
+        else { return false }
+        return result != nil
     }
 
     private func append(_ line: String) {
@@ -227,6 +245,13 @@ struct ExperimentalWallpapersView: View {
                         Task { await manager.apply() }
                     }
                     .disabled(manager.isApplying || manager.selectedFiles.isEmpty)
+                    Button("Refresh PosterBoard") {
+                        if manager.openPosterBoard() {
+                            manager.log.append("PosterBoard opened. Close it from the app switcher, then reopen the wallpaper picker.")
+                        } else {
+                            manager.log.append("PosterBoard could not be opened. Reboot the phone and try again.")
+                        }
+                    }
                 }
                 Section("Log") {
                     Text(manager.log.isEmpty ? "No activity yet." : manager.log.joined(separator: "\n"))
