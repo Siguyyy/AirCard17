@@ -115,6 +115,17 @@ final class ExperimentalPosterBoardManager: ObservableObject {
             return
         }
 
+        if !exploit.kfsReady && !exploit.directWriteReady {
+            append("Preparing the filesystem bridge…")
+            let ready = await withCheckedContinuation { continuation in
+                exploit.runAll { success in continuation.resume(returning: success) }
+            }
+            guard ready, exploit.kfsReady || exploit.directWriteReady else {
+                append("Filesystem bridge is not ready. Run Access/Exploit first, then try again.")
+                return
+            }
+        }
+
         isApplying = true
         defer { isApplying = false }
         do {
@@ -241,6 +252,9 @@ final class ExperimentalPosterBoardManager: ObservableObject {
     /// the same symlink escape used for the descriptor install.
     private func registerInCollections(_ registrations: [PosterRegistration]) throws {
         let targetRoot = "/var/mobile/Containers/Data/Application/\(appHash)/Library/Application Support/PRBPosterExtensionDataStore/\(extensionVersion)"
+        guard exploit.kfsReady || exploit.directWriteReady else {
+            throw WallpaperError.databaseUnavailable
+        }
         helper.terminatePosterBoard()
         try removeLink()
         try FileManager.default.createSymbolicLink(at: trashLink, withDestinationURL: URL(fileURLWithPath: targetRoot, isDirectory: true))
@@ -248,7 +262,7 @@ final class ExperimentalPosterBoardManager: ObservableObject {
 
         let databaseURL = trashLink.appendingPathComponent(databaseName)
         let directDatabasePath = targetRoot + "/" + databaseName
-        let kernelSize = helper.kfsFileSizeNC(directDatabasePath)
+        let kernelSize = exploit.kfsReady ? helper.kfsFileSizeNC(directDatabasePath) : -1
         if kernelSize > 0 {
             append("PosterBoard database found (\(kernelSize) bytes); opening it…")
         } else {
@@ -300,11 +314,6 @@ final class ExperimentalPosterBoardManager: ObservableObject {
     }
 
     private func updateDatabaseUsingKernelOverwrite(path: String, registrations: [PosterRegistration], expectedSize: Int64) throws {
-        guard expectedSize > 0 else {
-            append("PosterBoard database could not be located by the kernel probe.")
-            throw WallpaperError.databaseUnavailable
-        }
-
         let original = documents.appendingPathComponent("AirCard17-PosterBoard-original.sqlite3")
         let staged = documents.appendingPathComponent("AirCard17-PosterBoard-staged.sqlite3")
         defer {
@@ -314,10 +323,12 @@ final class ExperimentalPosterBoardManager: ObservableObject {
             try? FileManager.default.removeItem(atPath: staged.path + "-shm")
         }
 
-        guard let data = helper.kfsReadFile(path, maxSize: expectedSize + 1024 * 1024) else {
-            append("Kernel located PosterBoard's database but could not read it.")
+        let readLimit = max(expectedSize + 1024 * 1024, 64 * 1024 * 1024)
+        guard let data = readPrivateFile(path, maxSize: readLimit), !data.isEmpty else {
+            append("PosterBoard's database could not be read through the filesystem bridge.")
             throw WallpaperError.databaseUnavailable
         }
+        let originalSize = Int64(data.count)
         try data.write(to: original, options: .atomic)
 
         // A live PosterBoard database may be using WAL mode. Copy the WAL into
@@ -326,8 +337,8 @@ final class ExperimentalPosterBoardManager: ObservableObject {
         // locked as well.
         let walPath = path + "-wal"
         let walLocal = URL(fileURLWithPath: staged.path + "-wal")
-        if let walSize = positiveKernelFileSize(walPath),
-           let walData = helper.kfsReadFile(walPath, maxSize: walSize + 1024 * 1024) {
+        let walSize = exploit.kfsReady ? positiveKernelFileSize(walPath) : nil
+        if let walData = readPrivateFile(walPath, maxSize: max((walSize ?? 0) + 1024 * 1024, 64 * 1024 * 1024)) {
             try walData.write(to: walLocal, options: .atomic)
         }
         try FileManager.default.copyItem(at: original, to: staged)
@@ -342,21 +353,40 @@ final class ExperimentalPosterBoardManager: ObservableObject {
         }
 
         var modified = try Data(contentsOf: staged)
-        if Int64(modified.count) > expectedSize {
+        if Int64(modified.count) > originalSize {
             append("Updated PosterBoard database is larger than the original; refusing to overwrite it.")
             throw WallpaperError.databaseUnavailable
         }
-        if Int64(modified.count) < expectedSize {
-            modified.append(Data(repeating: 0, count: Int(expectedSize) - modified.count))
+        if Int64(modified.count) < originalSize {
+            modified.append(Data(repeating: 0, count: Int(originalSize) - modified.count))
             try modified.write(to: staged, options: .atomic)
         }
 
-        let result = kfs_overwrite_file(path, staged.path)
-        guard result == 0 else {
-            append("Kernel-backed PosterBoard database replacement failed (\(result)).")
-            throw WallpaperError.databaseUnavailable
+        if exploit.directWriteReady {
+            do {
+                try modified.write(to: URL(fileURLWithPath: path), options: [.atomic])
+            } catch {
+                append("Direct database replacement was denied: \(error.localizedDescription)")
+                throw WallpaperError.databaseUnavailable
+            }
+        } else {
+            let result = kfs_overwrite_file(path, staged.path)
+            guard result == 0 else {
+                append("Kernel-backed PosterBoard database replacement failed (\(result)).")
+                throw WallpaperError.databaseUnavailable
+            }
         }
         append("PosterBoard Collections database updated through the kernel bridge (\(registrations.count) requested).")
+    }
+
+    private func readPrivateFile(_ path: String, maxSize: Int64) -> Data? {
+        if exploit.kfsReady, let data = helper.kfsReadFile(path, maxSize: maxSize), !data.isEmpty {
+            return data
+        }
+        if exploit.directWriteReady, let data = helper.directReadFile(path, maxSize: maxSize), !data.isEmpty {
+            return data
+        }
+        return nil
     }
 
     private func positiveKernelFileSize(_ path: String) -> Int64? {
