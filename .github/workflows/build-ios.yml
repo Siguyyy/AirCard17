@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - experimental-ios17-wallpapers
     paths:
       - "AirCard17/**"
       - "AirCard17.xcodeproj/**"
@@ -65,6 +66,12 @@ jobs:
 
       - name: Package IPA
         run: |
+          if [ "${GITHUB_REF_NAME}" = "experimental-ios17-wallpapers" ]; then
+            export IPA_NAME="aircard17-ios17-wallpapers-experimental.ipa"
+          else
+            export IPA_NAME="aircard17-unsigned.ipa"
+          fi
+          echo "IPA_NAME=${IPA_NAME}" >> "$GITHUB_ENV"
           APP_PATH="build/Build/Products/Release-iphoneos/AirCard17.app"
           if [ ! -d "$APP_PATH" ]; then
             echo "App not found at $APP_PATH"
@@ -75,7 +82,7 @@ jobs:
           rm -rf Payload
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
-          zip -qry aircard17-unsigned.ipa Payload
+          zip -qry "${IPA_NAME}" Payload
 
       - name: Package TrollStore TIPA
         run: |
@@ -136,8 +143,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aircard17-unsigned.ipa
-          path: aircard17-unsigned.ipa
+          name: ${{ github.ref_name == 'experimental-ios17-wallpapers' && 'aircard17-ios17-wallpapers-experimental.ipa' || 'aircard17-unsigned.ipa' }}
+          path: ${{ github.ref_name == 'experimental-ios17-wallpapers' && 'aircard17-ios17-wallpapers-experimental.ipa' || 'aircard17-unsigned.ipa' }}
 
       - name: Upload TrollStore artifact
         uses: actions/upload-artifact@v4

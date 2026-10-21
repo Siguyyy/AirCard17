@@ -31,6 +31,8 @@
 		D500000128EC000000EEE001 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D500000228EC000000EEE001 /* LanguageManager.swift */; };
 		D600000128ED000000FFF001 /* GitHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D600000228ED000000FFF001 /* GitHubService.swift */; };
 		D700000128EE000000111001 /* AssetDocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D700000228EE000000111001 /* AssetDocumentPicker.swift */; };
+		F700000128F5000000000001 /* ExperimentalWallpapers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F700000528F5000000000001 /* ExperimentalWallpapers.swift */; };
+		F700000228F5000000000001 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = F700000328F5000000000001 /* ZIPFoundation */; };
 		EA00000328F1000000000001 /* NFCCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA00000228F1000000000001 /* NFCCard.swift */; };
 		EA00000528F1000000000001 /* NFCCardReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA00000428F1000000000001 /* NFCCardReader.swift */; };
 		EA00000728F1000000000001 /* NFCDaemonManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA00000628F1000000000001 /* NFCDaemonManager.swift */; };
@@ -122,6 +124,7 @@
 		EA02000028F3000000000001 /* nfcd_a3 */ = {isa = PBXFileReference; explicitFileType = compiled.mach-o.executable; includeInIndex = 0; path = nfcd_a3; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA02001028F3000000000001 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		EA02002028F3000000000001 /* nfcd_a3.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = nfcd_a3.entitlements; sourceTree = "<group>"; };
+		F700000528F5000000000001 /* ExperimentalWallpapers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperimentalWallpapers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +134,7 @@
 			files = (
 				D400000128EB000000DDD001 /* lib/libxpf.dylib in Frameworks */,
 				D400000428EB000000DDD001 /* lib/libgrabkernel2.dylib in Frameworks */,
+				F700000228F5000000000001 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,6 +180,7 @@
 				8A928B9C28E5E1EB00EADBA5 /* ImagePicker.swift */,
 				D300000228EA000000CCC001 /* DocumentPicker.swift */,
 				D700000228EE000000111001 /* AssetDocumentPicker.swift */,
+				F700000528F5000000000001 /* ExperimentalWallpapers.swift */,
 				D500000228EC000000EEE001 /* LanguageManager.swift */,
 				D600000228ED000000FFF001 /* GitHubService.swift */,
 				8A928BA028E5F04800EADBA5 /* ObjcHelper.m */,
@@ -258,6 +263,7 @@
 			);
 			name = AirCard17;
 			packageProductDependencies = (
+				F700000328F5000000000001 /* ZIPFoundation */,
 			);
 			productName = AirCard17;
 			productReference = 8AA5371C28E269E100146E99 /* AirCard17.app */;
@@ -312,6 +318,7 @@
 			);
 			mainGroup = 8AA5371328E269E100146E99;
 			packageReferences = (
+				F700000428F5000000000001 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 			);
 			productRefGroup = 8AA5371D28E269E100146E99 /* Products */;
 			projectDirPath = "";
@@ -393,6 +400,7 @@
 				EA00000528F1000000000001 /* NFCCardReader.swift in Sources */,
 				EA00000728F1000000000001 /* NFCDaemonManager.swift in Sources */,
 				EA00000928F1000000000001 /* NFCEmulationView.swift in Sources */,
+				F700000128F5000000000001 /* ExperimentalWallpapers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -708,6 +716,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F700000428F5000000000001 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.19;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F700000328F5000000000001 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F700000428F5000000000001 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8AA5371428E269E100146E99 /* Project object */;
 }

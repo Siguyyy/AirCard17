@@ -1243,6 +1243,13 @@ struct ContentView: View {
                     Text("NFC")
                 }
                 .tag(4)
+
+            ExperimentalWallpapersView()
+                .tabItem {
+                    Image(systemName: "photo.stack.fill")
+                    Text("Wallpapers")
+                }
+                .tag(5)
         }
         .onReceive(NotificationCenter.default.publisher(for: .cardioSelectTab)) { notif in
             if let tab = notif.object as? Int { selectedTab = tab }
