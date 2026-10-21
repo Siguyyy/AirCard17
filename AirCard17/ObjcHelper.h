@@ -29,6 +29,8 @@ NS_ASSUME_NONNULL_BEGIN
 -(NSData * _Nullable)kfsReadFile:(NSString *)path maxSize:(int64_t)maxSize;
 -(NSArray<NSString *> *)directListDirectory:(NSString *)path;
 -(NSData * _Nullable)directReadFile:(NSString *)path maxSize:(int64_t)maxSize;
+/// Stop PosterBoard so its SQLite store is not held open while AirCard updates it.
+-(void)terminatePosterBoard;
 -(NSDictionary<NSString *, NSNumber *> *)runtimeEntitlementFlags;
 -(BOOL)isLikelyLiveContainerGuest;
 

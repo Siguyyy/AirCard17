@@ -203,6 +203,11 @@ static NSNumber * _Nullable cardioBoolFromEntitlementValue(CFTypeRef _Nullable v
     return data.length > 0 ? data : nil;
 }
 
+-(void)terminatePosterBoard {
+    killall(@"PosterBoard");
+    usleep(300000);
+}
+
 -(NSDictionary<NSString *, NSNumber *> *)runtimeEntitlementFlags {
     SecTaskRef task = SecTaskCreateFromSelf(kCFAllocatorDefault);
     if (task == NULL) {
